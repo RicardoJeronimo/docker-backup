@@ -1,0 +1,43 @@
+#!/bin/bash
+
+checkDependencies() {
+    dependencies=("docker" "rsync")
+
+    for dep in "${dependencies[@]}"; do
+        if [ ! "$(command -v "$dep")" ]; then
+            fatal "[ERROR] Command $dep not installed."
+        fi
+    done
+
+    if [ $EUID != 0 ]; then
+        fatal "[ERROR] Sudo privileges required."
+    fi
+}
+
+fatal() {
+    echo "$@" >&2
+    kill -10 $proc
+}
+
+proc=$$
+trap 'exit 1' SIGUSR1
+
+checkDependencies
+
+hostname=$(hostname)
+containers=$(docker ps --format "{{.Names}}")
+volumeDir="/opt/docker/"
+backupDest="/apollo/Arquivos/Homelab/${hostname^}/docker"
+
+echo "[INFO] Stopping containers..."
+for container in $containers; do
+    docker stop $container
+done
+
+echo "[INFO] Copying directories and files to their destination..."
+rsync -av $volumeDir $backupDest
+
+echo "[INFO] Starting containers..."
+for container in $containers; do
+    docker start $container
+done
