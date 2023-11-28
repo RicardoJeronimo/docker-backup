@@ -3,9 +3,11 @@
 backup() {
     echo "[INFO] Copying directories and files to their destination..."
 
-    rsync -av "$origin" "$destination"
-
-    echo
+    if rsync -av "$origin" "$destination"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 checkDependencies() {
@@ -29,31 +31,29 @@ fatal() {
 
 notify() {
     curl \
-        -H "Title: $1" \
-        -d "$2" \
+        -H "Title: ${hostname^}" \
+        -d "$1" \
         "http://ntfy.io/chronos"
-
-    echo
 }
 
 startContainers() {
     echo "[INFO] Starting containers..."
 
-    for container in $containers; do
-        docker start "$container"
-    done
-
-    echo 
+    if docker start $containers; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 stopContainers() {
     echo "[INFO] Stopping containers..."
 
-    for container in $containers; do
-        docker stop "$container"
-    done
-
-    echo 
+    if docker stop $containers; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 usage() {
@@ -69,9 +69,6 @@ proc=$$
 trap 'exit 1' SIGUSR1
 
 checkDependencies
-
-hostname=$(hostname)
-containers=$(docker ps --format "{{.Names}}")
 
 while getopts 'd:o:h' arg; do
 		case $arg in
@@ -99,18 +96,28 @@ elif [ -z "$destination" ]; then
 fi
 
 hostname=$(hostname)
-containers=$(docker ps --format "{{.Names}}")
+containers=$(docker ps -q)
 
 if stopContainers; then
+    echo
     if backup; then
+        echo
         if startContainers; then
-            notify "${hostname^}" "$origin: Backup completed." 
+            echo
+            notify "$origin: Backup completed." 
         else
+            echo
             fatal "[ERROR] Unable to start containers."
         fi
     else
-        notify "${hostname^}" "$origin: Backup failed." 
+        echo
+        notify "$origin: Backup failed." 
+        fatal "[ERROR] Backup failed."
+
+        echo
+        startContainers
     fi
 else
+    echo
     fatal "[ERROR] Unable to stop containers."
 fi
