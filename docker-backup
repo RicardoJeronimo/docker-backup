@@ -19,6 +19,13 @@ fatal() {
     kill -10 $proc
 }
 
+notify() {
+    curl \
+        -H "Title: $1" \
+        -d "$2" \
+        "$3"
+}
+
 proc=$$
 trap 'exit 1' SIGUSR1
 
@@ -41,3 +48,5 @@ echo "[INFO] Starting containers..."
 for container in $containers; do
     docker start $container
 done
+
+notify "${hostname^}" "Backup completed successfully" "ntfy.io/chronos"
