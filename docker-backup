@@ -112,10 +112,12 @@ if stopContainers; then
     else
         echo
         notify "$origin: Backup failed." 
-        fatal "[ERROR] Backup failed."
 
         echo
         startContainers
+
+        echo
+        fatal "[ERROR] Backup failed."
     fi
 else
     echo
