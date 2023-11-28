@@ -1,5 +1,13 @@
 #!/bin/bash
 
+backup() {
+    echo "[INFO] Copying directories and files to their destination..."
+
+    rsync -av $origin $destination
+
+    echo ""
+}
+
 checkDependencies() {
     dependencies=("docker" "rsync")
 
@@ -26,6 +34,26 @@ notify() {
         "$3"
 }
 
+startContainers() {
+    echo "[INFO] Starting containers..."
+
+    for container in $containers; do
+        docker start $container
+    done
+
+    echo ""
+}
+
+stopContainers() {
+    echo "[INFO] Stopping containers..."
+
+    for container in $containers; do
+        docker stop $container
+    done
+
+    echo ""
+}
+
 proc=$$
 trap 'exit 1' SIGUSR1
 
@@ -33,20 +61,37 @@ checkDependencies
 
 hostname=$(hostname)
 containers=$(docker ps --format "{{.Names}}")
-volumeDir="/opt/docker/"
-backupDest="/apollo/Arquivos/Homelab/${hostname^}/docker"
 
-echo "[INFO] Stopping containers..."
-for container in $containers; do
-    docker stop $container
+while getopts 'd:o:h' arg; do
+		case $arg in
+			d)
+                destination=$OPTARG
+            ;;
+            o)
+                origin=$OPTARG
+            ;;
+            h)
+            exit 2
+            ;;
+            *)
+            exit 2
+            ;;
+    esac
 done
 
-echo "[INFO] Copying directories and files to their destination..."
-rsync -av $volumeDir $backupDest
+if [ -z "$origin" ]; then
+    fatal "[ERROR] Origin path not provided."
+elif [ -z "$destination" ]; then
+    fatal "[ERROR] Destination path not provided."
+fi
 
-echo "[INFO] Starting containers..."
-for container in $containers; do
-    docker start $container
-done
+hostname=$(hostname)
+containers=$(docker ps --format "{{.Names}}")
 
-notify "${hostname^}" "Backup completed successfully" "ntfy.io/chronos"
+stopContainers
+
+backup \
+    && notify "${hostname^}" "$origin: Backup completed." "ntfy.io/chronos" \
+    || notify "${hostname^}" "$origin: Backup failed." "ntfy.io/chronos"
+    
+startContainers
