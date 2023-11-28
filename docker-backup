@@ -31,7 +31,7 @@ notify() {
     curl \
         -H "Title: $1" \
         -d "$2" \
-        "$3"
+        "http://ntfy.io/chronos"
 
     echo
 }
@@ -101,10 +101,16 @@ fi
 hostname=$(hostname)
 containers=$(docker ps --format "{{.Names}}")
 
-stopContainers
-
-backup \
-    && notify "${hostname^}" "$origin: Backup completed." "ntfy.io/chronos" \
-    || notify "${hostname^}" "$origin: Backup failed." "ntfy.io/chronos"
-    
-startContainers
+if stopContainers; then
+    if backup; then
+        if startContainers; then
+            notify "${hostname^}" "$origin: Backup completed." 
+        else
+            fatal "[ERROR] Unable to start containers."
+        fi
+    else
+        notify "${hostname^}" "$origin: Backup failed." 
+    fi
+else
+    fatal "[ERROR] Unable to stop containers."
+fi
