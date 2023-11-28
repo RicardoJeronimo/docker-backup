@@ -54,6 +54,15 @@ stopContainers() {
     echo ""
 }
 
+usage() {
+    cat <<-EOF
+	Usage: docker-backup -o /path/to/origin -d /path/to/destination
+        -o  Origin directory where your Docker bind mounts are located
+        -d  Backup destination path. Remote paths are also valid (i.e. username@192.168.1.100:/path/to/destination)
+        -h  Show this help message and exit
+	EOF
+}
+
 proc=$$
 trap 'exit 1' SIGUSR1
 
@@ -71,9 +80,11 @@ while getopts 'd:o:h' arg; do
                 origin=$(sed 's![^/]$!&/!' <<< $OPTARG)
             ;;
             h)
+            usage
             exit 2
             ;;
             *)
+            usage
             exit 2
             ;;
     esac
