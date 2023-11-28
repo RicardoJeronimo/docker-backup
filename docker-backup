@@ -68,7 +68,7 @@ while getopts 'd:o:h' arg; do
                 destination=$OPTARG
             ;;
             o)
-                origin=$OPTARG
+                origin=$(sed 's![^/]$!&/!' <<< $OPTARG)
             ;;
             h)
             exit 2
