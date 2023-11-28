@@ -3,9 +3,9 @@
 backup() {
     echo "[INFO] Copying directories and files to their destination..."
 
-    rsync -av $origin $destination
+    rsync -av "$origin" "$destination"
 
-    echo ""
+    echo
 }
 
 checkDependencies() {
@@ -32,26 +32,28 @@ notify() {
         -H "Title: $1" \
         -d "$2" \
         "$3"
+
+    echo
 }
 
 startContainers() {
     echo "[INFO] Starting containers..."
 
     for container in $containers; do
-        docker start $container
+        docker start "$container"
     done
 
-    echo ""
+    echo 
 }
 
 stopContainers() {
     echo "[INFO] Stopping containers..."
 
     for container in $containers; do
-        docker stop $container
+        docker stop "$container"
     done
 
-    echo ""
+    echo 
 }
 
 usage() {
@@ -77,7 +79,7 @@ while getopts 'd:o:h' arg; do
                 destination=$OPTARG
             ;;
             o)
-                origin=$(sed 's![^/]$!&/!' <<< $OPTARG)
+                origin=$(sed 's![^/]$!&/!' <<< "$OPTARG")
             ;;
             h)
             usage
