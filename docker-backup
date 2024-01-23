@@ -49,7 +49,7 @@ notify() {
 startContainers() {
     echo "[INFO] Starting containers..."
 
-    if docker start "$containers"; then
+    if docker start $containers; then
         return 0
     else
         return 1
@@ -59,7 +59,7 @@ startContainers() {
 stopContainers() {
     echo "[INFO] Stopping containers..."
 
-    if docker stop "$containers"; then
+    if docker stop $containers; then
         return 0
     else
         return 1
