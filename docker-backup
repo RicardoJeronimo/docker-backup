@@ -3,7 +3,7 @@
 backup() {
     echo "[INFO] Backing up files directories..."
 
-    if rsync -av "$origin" "$destination"; then
+    if rsync -av --remove-source-files "$archive" "$destination"; then
         return 0
     else
         return 1
@@ -24,6 +24,16 @@ checkDependencies() {
     fi
 }
 
+compress() {
+    echo "[INFO] Compressing files and directories..."
+
+    if tar -czvf "$archive" "$origin"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 fatal() {
     echo "$@" >&2
     kill -10 $proc
@@ -31,7 +41,7 @@ fatal() {
 
 notify() {
     curl \
-        -H "Title: ${hostname^}" \
+        -H "Title: ${HOSTNAME^}" \
         -d "$1" \
         "http://ntfy.io/chronos"
 }
@@ -95,29 +105,45 @@ elif [ -z "$destination" ]; then
     fatal "[ERROR] Destination path not provided."
 fi
 
-hostname=$(hostname)
+archive="/tmp/docker-$HOSTNAME.tar.gz"
 containers=$(docker ps -q)
 
 if stopContainers; then
     echo
-    if backup; then
+    if compress; then
         echo
-        if startContainers; then
+        if backup; then
             echo
-            notify "$origin: Backup completed." 
+            if startContainers; then
+                echo
+                notify "$origin: Backup completed." 
+            else
+                echo
+                fatal "[ERROR] Unable to start containers."
+            fi
         else
             echo
-            fatal "[ERROR] Unable to start containers."
+            fatal "[ERROR] Backup failed."
+
+            echo
+            if startContainers; then
+                echo
+                notify "$origin: Backup failed." 
+            else
+                echo
+                fatal "[ERROR] Unable to start containers."
         fi
     else
         echo
-        notify "$origin: Backup failed." 
+        fatal "[ERROR] Compression failed."
 
         echo
-        startContainers
-
-        echo
-        fatal "[ERROR] Backup failed."
+        if startContainers; then
+            echo
+            notify "$origin: Backup compression failed." 
+        else
+            echo
+            fatal "[ERROR] Unable to start containers."
     fi
 else
     echo
