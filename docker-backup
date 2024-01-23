@@ -105,7 +105,7 @@ elif [ -z "$destination" ]; then
     fatal "[ERROR] Destination path not provided."
 fi
 
-archive="/tmp/docker-$HOSTNAME.tar.gz"
+archive="/tmp/$HOSTNAME.tar.gz"
 containers=$(docker ps -q)
 notifyURL="http://ntfy.io/chronos"
 
