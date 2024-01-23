@@ -124,9 +124,6 @@ if stopContainers; then
             fi
         else
             echo
-            fatal "[ERROR] Backup failed."
-
-            echo
             if startContainers; then
                 echo
                 notify "$origin: Backup failed." 
@@ -134,11 +131,11 @@ if stopContainers; then
                 echo
                 fatal "[ERROR] Unable to start containers."
             fi
+
+            echo
+            fatal "[ERROR] Backup failed."
         fi
     else
-        echo
-        fatal "[ERROR] Compression failed."
-
         echo
         if startContainers; then
             echo
@@ -147,6 +144,9 @@ if stopContainers; then
             echo
             fatal "[ERROR] Unable to start containers."
         fi
+
+        echo
+        fatal "[ERROR] Compression failed."
     fi
 else
     echo
