@@ -43,7 +43,7 @@ notify() {
     curl \
         -H "Title: ${HOSTNAME^}" \
         -d "$1" \
-        "http://ntfy.io/chronos"
+        "$notifyURL"
 }
 
 startContainers() {
@@ -107,6 +107,7 @@ fi
 
 archive="/tmp/docker-$HOSTNAME.tar.gz"
 containers=$(docker ps -q)
+notifyURL="http://ntfy.io/chronos"
 
 if stopContainers; then
     echo
