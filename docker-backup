@@ -71,18 +71,18 @@ trap 'exit 1' SIGUSR1
 checkDependencies
 
 while getopts 'd:o:h' arg; do
-		case $arg in
-			d)
-                destination=$OPTARG
+    case $arg in
+        d)
+            destination=$OPTARG
             ;;
-            o)
-                origin=$(sed 's![^/]$!&/!' <<< "$OPTARG")
+        o)
+            origin=$(sed 's![^/]$!&/!' <<< "$OPTARG")
             ;;
-            h)
+        h)
             usage
             exit 2
             ;;
-            *)
+        *)
             usage
             exit 2
             ;;
