@@ -3,7 +3,7 @@
 backup() {
     echo "[INFO] Backing up archive..."
 
-    if rsync -av --remove-source-files "$archive" "$destination"; then
+    if rsync -av --remove-source-files --perms --chmod=640 "$archive" "$destination"; then
         return 0
     else
         return 1
